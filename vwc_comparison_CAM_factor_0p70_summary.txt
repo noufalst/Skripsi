@@ -1,0 +1,19 @@
+VWC MODEL vs RIKA SUMMARY
+============================================================
+Plant type        : CAM
+Window            : 2026-03-31 11:58:00 -> 2026-04-02 21:42:00
+Correction factor : 0.7
+theta_sat         : 0.9
+theta_min         : 0.05
+theta_initial     : {'depths': [0.02, 0.07], 'values': [0.5466941666666665, 0.4634058333333333]}
+Target col        : T2A2
+T_in col          : T_in_CAM
+
+model_theta_top          : min=0.050, mean=0.489, max=0.768, n=3465
+model_theta_mid          : min=0.446, mean=0.521, max=0.671, n=3465
+model_theta_bot          : min=0.454, mean=0.518, max=0.667, n=3465
+model_theta_mean         : min=0.429, mean=0.519, max=0.672, n=3465
+rika_corrected_theta_2cm : min=0.356, mean=0.499, max=0.616, n=3265
+rika_raw_theta_2cm       : min=0.509, mean=0.713, max=0.880, n=3265
+rika_corrected_theta_7cm : min=0.449, mean=0.498, max=0.568, n=3464
+rika_raw_theta_7cm       : min=0.641, mean=0.711, max=0.811, n=3464

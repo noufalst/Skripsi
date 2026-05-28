@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Green Roof Simulation — Code Flowchart</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap');
+
+  :root {
+    --bg: #0a0e1a;
+    --panel: #111827;
+    --border: #1e2d4a;
+    --accent: #00d4ff;
+    --accent2: #7c3aed;
+    --accent3: #10b981;
+    --accent4: #f59e0b;
+    --accent5: #ef4444;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --seg1: #1e3a5f;
+    --seg2: #1a3a2a;
+    --seg3: #3a1a1a;
+    --seg4: #2a1a3a;
+    --seg5: #3a2a1a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    padding: 20px;
+    overflow-x: hidden;
+  }
+
+  .page-title {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+
+  .page-title h1 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+  }
+
+  .page-title p {
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    margin-top: 6px;
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 30px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.7rem;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 2px;
+  }
+
+  /* Main flow container */
+  .flow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  /* Arrow */
+  .arrow {
+    width: 2px;
+    height: 24px;
+    background: var(--muted);
+    position: relative;
+  }
+
+  .arrow::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 7px solid var(--muted);
+  }
+
+  .arrow.accent { background: var(--accent); }
+  .arrow.accent::after { border-top-color: var(--accent); }
+
+  /* Node styles */
+  .node {
+    border-radius: 10px;
+    padding: 12px 20px;
+    border: 1px solid var(--border);
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: default;
+  }
+
+  .node:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0,212,255,0.15);
+  }
+
+  .node-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+
+  .node-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .node-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+  }
+
+  .node-body {
+    font-size: 0.72rem;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    line-height: 1.6;
+  }
+
+  .node-body .tag {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 0.65rem;
+    margin: 1px;
+  }
+
+  .node-body .eq {
+    color: var(--accent);
+  }
+
+  /* Node type colors */
+  .node.dataclass {
+    background: linear-gradient(135deg, #0f1e3a, #111827);
+    border-color: #1e3a6e;
+  }
+  .node.dataclass .node-badge {
+    background: #1e3a6e;
+    color: var(--accent);
+  }
+
+  .node.helper {
+    background: linear-gradient(135deg, #1a1a0f, #111827);
+    border-color: #3a3a1e;
+  }
+  .node.helper .node-badge {
+    background: #3a3a1e;
+    color: var(--accent4);
+  }
+
+  .node.block {
+    background: linear-gradient(135deg, #0f2a1a, #111827);
+    border-color: #1e4a2e;
+  }
+  .node.block .node-badge {
+    background: #1e4a2e;
+    color: var(--accent3);
+  }
+
+  .node.block.cam {
+    background: linear-gradient(135deg, #1a0f2a, #111827);
+    border-color: #2e1e4a;
+  }
+  .node.block.cam .node-badge {
+    background: #2e1e4a;
+    color: var(--accent2);
+  }
+
+  .node.solver {
+    background: linear-gradient(135deg, #2a1a0f, #111827);
+    border-color: #4a3a1e;
+  }
+  .node.solver .node-badge {
+    background: #4a3a1e;
+    color: #fb923c;
+  }
+
+  .node.mainloop {
+    background: linear-gradient(135deg, #0a1e2a, #111827);
+    border-color: #1e3a4a;
+    border-width: 2px;
+  }
+  .node.mainloop .node-badge {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: white;
+  }
+
+  .node.analysis {
+    background: linear-gradient(135deg, #2a0f1a, #111827);
+    border-color: #4a1e2e;
+  }
+  .node.analysis .node-badge {
+    background: #4a1e2e;
+    color: #fb7185;
+  }
+
+  .node.output {
+    background: linear-gradient(135deg, #0f2a2a, #111827);
+    border-color: #1e4a4a;
+  }
+  .node.output .node-badge {
+    background: #1e4a4a;
+    color: #34d399;
+  }
+
+  .node.start, .node.end {
+    max-width: 300px;
+    text-align: center;
+    border-radius: 50px;
+    padding: 10px 30px;
+  }
+
+  .node.start {
+    background: linear-gradient(135deg, var(--accent2), #4f46e5);
+    border-color: var(--accent2);
+  }
+
+  .node.end {
+    background: linear-gradient(135deg, var(--accent3), #059669);
+    border-color: var(--accent3);
+  }
+
+  .node.end .node-title, .node.start .node-title {
+    color: white;
+    font-size: 1rem;
+  }
+
+  /* Parallel blocks */
+  .parallel {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    max-width: 900px;
+    align-items: stretch;
+  }
+
+  .parallel .node {
+    max-width: none;
+    flex: 1;
+  }
+
+  .parallel-connector {
+    width: 100%;
+    max-width: 900px;
+    height: 30px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .parallel-connector::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 15%;
+    right: 15%;
+    height: 1px;
+    background: var(--muted);
+  }
+
+  .parallel-connector .line-left,
+  .parallel-connector .line-right {
+    position: absolute;
+    top: 0;
+    width: 1px;
+    height: 100%;
+    background: var(--muted);
+  }
+
+  .parallel-connector .line-left { left: 15%; }
+  .parallel-connector .line-right { right: 15%; }
+
+  .parallel-connector .line-center {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 1px;
+    height: 100%;
+    background: var(--muted);
+  }
+
+  /* Section label */
+  .section-label {
+    font-size: 0.65rem;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    text-align: center;
+    width: 100%;
+  }
+
+  .section-group {
+    width: 100%;
+    max-width: 900px;
+    border: 1px dashed #1e2d4a;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  .section-group.data { border-color: #1e3a6e44; }
+  .section-group.blocks { border-color: #1e4a2e44; }
+
+  /* Detail tags */
+  .detail-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 6px;
+  }
+
+  .tag-blue { background: #1e3a6e; color: var(--accent); }
+  .tag-green { background: #1e4a2e; color: var(--accent3); }
+  .tag-yellow { background: #3a2a00; color: var(--accent4); }
+  .tag-red { background: #3a1a1a; color: #fb7185; }
+  .tag-purple { background: #2e1e4a; color: var(--accent2); }
+  .tag-orange { background: #3a2000; color: #fb923c; }
+
+  /* Decision diamond */
+  .decision {
+    width: 200px;
+    height: 60px;
+    background: linear-gradient(135deg, #2a1a00, #111827);
+    border: 1px solid #4a3a1e;
+    transform: perspective(100px) rotateX(5deg);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent4);
+    text-align: center;
+    padding: 8px;
+  }
+
+  .loop-indicator {
+    font-size: 0.65rem;
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    text-align: center;
+    padding: 4px 12px;
+    border: 1px dashed var(--accent);
+    border-radius: 20px;
+    opacity: 0.7;
+  }
+
+  .arrow-label {
+    font-size: 0.6rem;
+    color: var(--accent4);
+    font-family: 'JetBrains Mono', monospace;
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .arrow-wrap {
+    position: relative;
+    display: flex;
+    justify-content: center;
+  }
+
+  /* Highlight real data */
+  .real { color: var(--accent3) !important; }
+  .dummy { color: var(--accent4) !important; }
+  .todo { color: #fb7185 !important; }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .parallel { flex-direction: column; }
+    .node { max-width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-title">
+  <h1>Green Roof Thermal Simulation</h1>
+  <p>green_roof_demo.py — Code Architecture Flowchart</p>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#1e3a6e"></div>Data Class (Seg 1-5)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#3a3a1e"></div>Helper / Loader (Seg 6-7)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#1e4a2e"></div>Physics Block (Seg 8-10)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#4a3a1e"></div>Solver (Seg 11)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#00d4ff,#7c3aed)"></div>Main Loop (Seg 12)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#4a1e2e"></div>Analysis (Seg 13-14)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#1e4a4a"></div>Output (Seg 15-16)</div>
+</div>
+
+<div class="flow">
+
+  <!-- START -->
+  <div class="node start">
+    <div class="node-title">▶ START: python green_roof_demo.py</div>
+  </div>
+  <div class="arrow accent"></div>
+
+  <!-- SECTION: Data Classes -->
+  <div class="section-label">◈ SEGMENT 1-5 — Parameter Definitions</div>
+  <div class="section-group data">
+
+    <div class="parallel">
+      <!-- Seg 1 -->
+      <div class="node dataclass">
+        <div class="node-header">
+          <span class="node-badge">Seg 1</span>
+          <span class="node-title">PlantParameters</span>
+        </div>
+        <div class="node-body">
+          <div class="detail-list">
+            <span class="tag tag-blue">H_f</span>
+            <span class="tag tag-blue">d_f</span>
+            <span class="tag tag-blue">LAI</span>
+            <span class="tag tag-blue">alpha_f</span>
+            <span class="tag tag-blue">tau_f</span>
+            <span class="tag tag-blue">r_stoma_min</span>
+            <span class="tag tag-purple">plant_type: CAM|C3</span>
+          </div>
+          <div style="margin-top:6px">
+            <span class="real">✓ H_f, LAI, rho_f</span> → data 1yr ago<br>
+            <span class="todo">✗ r_stoma_min CAM</span> → need Licor
+          </div>
+        </div>
+      </div>
+
+      <!-- Seg 2 -->
+      <div class="node dataclass">
+        <div class="node-header">
+          <span class="node-badge">Seg 2</span>
+          <span class="node-title">SubstrateParameters</span>
+        </div>
+        <div class="node-body">
+          <div class="detail-list">
+            <span class="tag tag-yellow">λ_dry</span>
+            <span class="tag tag-yellow">ρ_g</span>
+            <span class="tag tag-yellow">cp_g</span>
+            <span class="tag tag-green">θ_sat</span>
+            <span class="tag tag-green">k_θ_sat</span>
+            <span class="tag tag-green">ψ_sat</span>
+            <span class="tag tag-green">b</span>
+            <span class="tag tag-blue">l_fg=2.45×10⁶</span>
+          </div>
+          <div style="margin-top:6px">
+            <span class="dummy">⚠ Most params</span> → need soil lab<br>
+            <span class="real">✓ λ_dry, cp_g</span> → literature
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="height:8px"></div>
+
+    <div class="parallel">
+      <!-- Seg 3 -->
+      <div class="node dataclass">
+        <div class="node-header">
+          <span class="node-badge">Seg 3</span>
+          <span class="node-title">SlabParameters</span>
+        </div>
+        <div class="node-body">
+          <div class="detail-list">
+            <span class="tag tag-blue">λ_s=1.74</span>
+            <span class="tag tag-blue">ρ_s=2300</span>
+            <span class="tag tag-blue">cp_s=840</span>
+            <span class="tag tag-yellow">H_slab=?</span>
+          </div>
+          <div style="margin-top:6px">
+            <span class="real">✓ All thermal props</span> → standard concrete<br>
+            <span class="todo">✗ H_slab</span> → measure directly
+          </div>
+        </div>
+      </div>
+
+      <!-- Seg 4 -->
+      <div class="node dataclass">
+        <div class="node-header">
+          <span class="node-badge">Seg 4</span>
+          <span class="node-title">GeometryParameters</span>
+        </div>
+        <div class="node-body">
+          <div class="detail-list">
+            <span class="tag tag-yellow">H_g=?</span>
+            <span class="tag tag-yellow">H_slab=?</span>
+            <span class="tag tag-red">T_in → dynamic!</span>
+            <span class="tag tag-blue">h_in=8.0</span>
+          </div>
+          <div style="margin-top:6px">
+            <span class="todo">✗ T_in ≠ 25°C</span> → use T1Ka/T3Kd NI data<br>
+            <span class="todo">✗ H_g</span> → measure directly
+          </div>
+        </div>
+      </div>
+
+      <!-- Seg 5 -->
+      <div class="node dataclass">
+        <div class="node-header">
+          <span class="node-badge">Seg 5</span>
+          <span class="node-title">NumericalParameters</span>
+        </div>
+        <div class="node-body">
+          <div class="detail-list">
+            <span class="tag tag-blue">dt=1s</span>
+            <span class="tag tag-blue">Nz_sub=107</span>
+            <span class="tag tag-blue">Nz_slab=67</span>
+            <span class="tag tag-blue">ε=1×10⁻⁵</span>
+          </div>
+          <div style="margin-top:6px">
+            <span class="real">✓ All values from paper</span><br>
+            Paper Section 3.1 verified
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end section-group -->
+
+  <div class="arrow"></div>
+
+  <!-- SECTION: Data Input -->
+  <div class="section-label">◈ SEGMENT 6-7 — Data Input & Thermodynamics</div>
+  <div class="section-group">
+
+    <div class="parallel">
+      <!-- Seg 6 -->
+      <div class="node helper">
+        <div class="node-header">
+          <span class="node-badge">Seg 6</span>
+          <span class="node-title">Weather Data</span>
+        </div>
+        <div class="node-body">
+          <span class="dummy">DEMO:</span> generate_dummy_weather()<br>
+          <span class="real">REAL:</span> load_weather_data('3-24april.txt')<br>
+          <div class="detail-list" style="margin-top:4px">
+            <span class="tag tag-yellow">T_a</span>
+            <span class="tag tag-yellow">G_sol</span>
+            <span class="tag tag-yellow">RH</span>
+            <span class="tag tag-yellow">u</span>
+            <span class="tag tag-yellow">rain</span>
+          </div>
+          Resample: 1 min → 1 sec (interpolate)
+        </div>
+      </div>
+
+      <!-- Seg 7 -->
+      <div class="node helper">
+        <div class="node-header">
+          <span class="node-badge">Seg 7</span>
+          <span class="node-title">Thermo Helpers</span>
+        </div>
+        <div class="node-body">
+          <span class="eq">saturation_pressure(T_K)</span><br>
+          → P_sat via Magnus eq. [Pa]<br>
+          <span class="eq">sky_temperature(T_a, RH)</span><br>
+          → T_sky for LW radiation [K]<br>
+          <span class="eq">ambient_vapor_pressure(T_a, RH)</span><br>
+          → P_a, VPD = P_sat - P_a [Pa]<br>
+          <span class="eq">psychrometric_constant()</span><br>
+          → γ ≈ 66.8 Pa/K [const]
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="arrow"></div>
+
+  <!-- MAIN LOOP wrapper -->
+  <div class="section-label">◈ SEGMENT 12 — Main Simulation Loop (dt=1s)</div>
+  <div class="section-group blocks" style="border-color:#1e4a2e88; border-width:2px">
+
+    <div class="loop-indicator">⟳ for step in range(N_steps)  |  N_steps = 604,800 (7 days)</div>
+    <div style="height:12px"></div>
+
+    <!-- Read weather -->
+    <div class="node helper" style="max-width:600px">
+      <div class="node-header">
+        <span class="node-badge" style="background:#3a3a1e;color:#f59e0b">INPUT</span>
+        <span class="node-title">Read Weather at step t</span>
+      </div>
+      <div class="node-body">
+        T_a_K, G_sol, RH, u, rain → convert rain to j_pr (kg/m²s)<br>
+        T_in_current ← <span class="tag tag-red">T1Ka/T3Kd NI data</span> (dynamic, not 25°C!)
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <!-- BLOCK 1 -->
+    <div class="node block cam" style="max-width:600px">
+      <div class="node-header">
+        <span class="node-badge">Seg 8 — Blok 1</span>
+        <span class="node-title">🌿 Foliage Model → T_f(t)</span>
+      </div>
+      <div class="node-body">
+        <span class="eq">compute_aerodynamic_resistance(u, plant)</span><br>
+        → r_a = f(H_f, u)  <span class="tag tag-purple">CAM: r_a bigger (shorter plant)</span><br>
+        <br>
+        <span class="eq">compute_stomatal_resistance(G_sol, T_f, P_sat, P_a, θ)</span><br>
+        → r_stoma = r_stoma_min/LAI × <span class="eq">f1(G_sol)×f2(T)×f3(VPD)×f4(θ)</span><br>
+        <span class="tag tag-red">CAM siang: ×12 (stomata hampir tutup)</span><br>
+        <span class="tag tag-purple">CAM malam: ×0.5 (stomata terbuka)</span><br>
+        <span class="tag tag-green">C3 siang: tidak ada modifier</span><br>
+        <br>
+        <span class="eq">solve_foliage_temperature()</span> [Eq.1,2,3]<br>
+        → R_f,net - h_conv×ΔT - h_eva×ΔP = 0<br>
+        → <strong>T_f_new</strong> (implicit scheme, direct solve)
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <!-- BLOCK 2a -->
+    <div class="node block" style="max-width:600px">
+      <div class="node-header">
+        <span class="node-badge">Seg 9 — Blok 2a</span>
+        <span class="node-title">🪨 Substrate Heat → T_g(z,t)</span>
+      </div>
+      <div class="node-body">
+        <span class="eq">compute_substrate_properties(θ)</span> [Eq. B.8-B.11]<br>
+        → ρcp_g, λ_g, k_θ, D_θ all change with θ<br>
+        <br>
+        <span class="eq">solve_substrate_heat(T_g, T_f, T_slab_top)</span> [Eq.4,5,6,7]<br>
+        → PDE: (ρcp)∂T/∂t = ∂/∂z(λ∂T/∂z)<br>
+        → BC top: R_g,net - h_conv - h_eva [Eq.5]<br>
+        → BC bot: continuity with slab [Eq.7]<br>
+        → FVM → tridiagonal system<br>
+        → TDMA solve → <strong>T_g[0..106]</strong>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <!-- BLOCK 2b -->
+    <div class="node block" style="max-width:600px">
+      <div class="node-header">
+        <span class="node-badge">Seg 9 — Blok 2b</span>
+        <span class="node-title">💧 Substrate Moisture → θ(z,t)</span>
+      </div>
+      <div class="node-body">
+        <span class="eq">solve_substrate_moisture(θ, T_f, T_g[0])</span> [Eq.8,9,10,11]<br>
+        → Richards PDE: ∂θ/∂t = ∂/∂z(D_θ∂θ/∂z) + ∂k_θ/∂z<br>
+        → j_eva = j_eva_foliage + j_eva_substrat [Eq.10]<br>
+        → BC top: j_irrigation - j_eva [Eq.9]<br>
+        → BC bot: drainage if θ≥θ_sat [Eq.11]<br>
+        → FVM → TDMA solve → <strong>θ[0..106]</strong> + <strong>j_eva</strong>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <!-- BLOCK 3 -->
+    <div class="node mainloop" style="max-width:600px">
+      <div class="node-header">
+        <span class="node-badge">Seg 10 — Blok 3</span>
+        <span class="node-title">🏗️ Slab Conduction → T_s(z,t) + q_s_in</span>
+      </div>
+      <div class="node-body">
+        <span class="eq">solve_slab_heat(T_s, T_g[-1], λ_g[-1])</span> [Eq.12,13,14]<br>
+        → Pure conduction, λ_s = const<br>
+        → BC top: continuity with substrate [Eq.13]<br>
+        → BC bot: h_in×(T_s[-1] - <span class="tag tag-red">T_in_dynamic</span>) [Eq.14]<br>
+        → FVM → TDMA solve → <strong>T_s[0..66]</strong><br>
+        → <strong style="color:var(--accent)">q_s_in = h_in × (T_s[-1] - T_in)</strong><br>
+        <span style="color:var(--accent3)">q_s_in < 0 = heat sink ✅ | q_s_in > 0 = heat gain ⚠</span>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <!-- Save -->
+    <div class="node helper" style="max-width:600px">
+      <div class="node-header">
+        <span class="node-badge" style="background:#1e3a2e;color:#34d399">SAVE</span>
+        <span class="node-title">Store Results (every 60s)</span>
+      </div>
+      <div class="node-body">
+        <div class="detail-list">
+          <span class="tag tag-green">T_f</span>
+          <span class="tag tag-green">T_g_top</span>
+          <span class="tag tag-green">T_g_bot</span>
+          <span class="tag tag-green">T_s_in</span>
+          <span class="tag tag-blue">θ_top/mid/bot</span>
+          <span class="tag tag-yellow">q_s_in</span>
+          <span class="tag tag-yellow">j_eva</span>
+        </div>
+        604,800 steps → save 10,080 records/sim (memory efficient)
+      </div>
+    </div>
+
+    <div style="height:12px"></div>
+    <div class="loop-indicator">⟳ repeat until t = t_final</div>
+    <div style="height:12px"></div>
+
+    <!-- Q_gain -->
+    <div class="node output" style="max-width:600px">
+      <div class="node-header">
+        <span class="node-badge">POST</span>
+        <span class="node-title">Compute Q_gain [Eq.18]</span>
+      </div>
+      <div class="node-body">
+        Q_gain = ∫ q_s_in dt  (trapezoid rule)<br>
+        <span style="color:var(--accent3)">Negative Q_gain = GR acts as heat sink ✅</span>
+      </div>
+    </div>
+
+  </div><!-- end blocks section -->
+
+  <div class="arrow"></div>
+
+  <!-- TDMA note -->
+  <div class="node solver" style="max-width:600px">
+    <div class="node-header">
+      <span class="node-badge">Seg 11</span>
+      <span class="node-title">⚡ TDMA Solver (called 3×/step)</span>
+    </div>
+    <div class="node-body">
+      Thomas Algorithm: O(n) complexity vs O(n³) matrix inversion<br>
+      Forward sweep → Back substitution<br>
+      Used by: <span class="tag tag-green">T_g (107)</span>
+      <span class="tag tag-blue">θ (107)</span>
+      <span class="tag tag-yellow">T_s (67)</span>
+    </div>
+  </div>
+
+  <div class="arrow"></div>
+
+  <!-- Run twice -->
+  <div class="node mainloop" style="max-width:600px">
+    <div class="node-header">
+      <span class="node-badge">Seg 16</span>
+      <span class="node-title">Run Simulation × 2</span>
+    </div>
+    <div class="node-body">
+      <span class="tag tag-purple">run_simulation(bromelia, ...)</span> → results_CAM<br>
+      <span class="tag tag-green">run_simulation(wedelia, ...)</span>  → results_C3<br>
+      Same weather data, different PlantParameters
+    </div>
+  </div>
+
+  <div class="arrow"></div>
+
+  <!-- Analysis -->
+  <div class="parallel" style="max-width:900px">
+    <div class="node analysis">
+      <div class="node-header">
+        <span class="node-badge">Seg 13</span>
+        <span class="node-title">LAI Calibration</span>
+      </div>
+      <div class="node-body">
+        Brent's method (scipy.optimize)<br>
+        <span class="tag tag-purple">CAM: dual-target</span> T_g_top + T_s_in<br>
+        <span class="tag tag-green">C3: single-target</span> T_s_in only<br>
+        ~10-20 iterations to converge<br>
+        Accuracy: LAI ± 0.005
+      </div>
+    </div>
+
+    <div class="node analysis">
+      <div class="node-header">
+        <span class="node-badge">Seg 14</span>
+        <span class="node-title">Sensitivity Analysis</span>
+      </div>
+      <div class="node-body">
+        LAI = [0.3, 0.5, 0.8, 1.0, 1.5, 2.0, 3.0]<br>
+        Per value: T_s_in_max, Q_gain, ET<br>
+        Shows uncertainty range<br>
+        Material for thesis discussion
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow"></div>
+
+  <!-- Visualization -->
+  <div class="node output" style="max-width:600px">
+    <div class="node-header">
+      <span class="node-badge">Seg 15</span>
+      <span class="node-title">📊 Visualization (6 panels)</span>
+    </div>
+    <div class="node-body">
+      <div class="detail-list">
+        <span class="tag tag-blue">(a) Temp CAM</span>
+        <span class="tag tag-blue">(b) Temp C3</span>
+        <span class="tag tag-yellow">(c) Heat flux CAM vs C3</span>
+        <span class="tag tag-green">(d) VWC comparison</span>
+        <span class="tag tag-purple">(e) Evapotranspiration</span>
+        <span class="tag tag-orange">(f) Weather input</span>
+      </div>
+      Save → green_roof_demo_result.png
+    </div>
+  </div>
+
+  <div class="arrow"></div>
+
+  <!-- Comparison table -->
+  <div class="node output" style="max-width:600px">
+    <div class="node-header">
+      <span class="node-badge">Seg 16</span>
+      <span class="node-title">📋 Results Comparison Table</span>
+    </div>
+    <div class="node-body">
+      Q_gain | T_s_in_max | T_s_in_mean | θ_final | ET_mean<br>
+      <span class="tag tag-purple">Bromelia (CAM)</span> vs
+      <span class="tag tag-green">Wedelia (C3)</span>
+    </div>
+  </div>
+
+  <div class="arrow"></div>
+
+  <!-- END -->
+  <div class="node end">
+    <div class="node-title">■ END: Simulation Complete</div>
+  </div>
+
+</div><!-- end flow -->
+
+<div style="height:40px"></div>
+
+<!-- Summary legend of what needs to be done -->
+<div style="max-width:900px;margin:0 auto;border:1px dashed #1e2d4a;border-radius:12px;padding:20px">
+  <div class="section-label" style="margin-bottom:12px">◈ STATUS — What Still Needs to be Done Before Running with Real Data</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px">
+    <div style="background:#1a1a0f;border-radius:8px;padding:12px;border:1px solid #3a3a1e">
+      <div style="color:#f59e0b;font-size:0.7rem;font-family:'JetBrains Mono',monospace;margin-bottom:6px">⚠ MEASURE AT LAB</div>
+      <div style="font-size:0.7rem;color:var(--muted)">H_g, H_slab, H_f, d_f<br>Soil lab: ρ_g, θ_sat, k_θ_sat, b</div>
+    </div>
+    <div style="background:#1a0f0f;border-radius:8px;padding:12px;border:1px solid #3a1e1e">
+      <div style="color:#fb7185;font-size:0.7rem;font-family:'JetBrains Mono',monospace;margin-bottom:6px">✗ UPLOAD MISSING DATA</div>
+      <div style="font-size:0.7rem;color:var(--muted)">Licor CAM file (r_stoma_min CAM)<br>Soil moisture data (θ_initial)</div>
+    </div>
+    <div style="background:#0f1a0f;border-radius:8px;padding:12px;border:1px solid #1e3a1e">
+      <div style="color:#34d399;font-size:0.7rem;font-family:'JetBrains Mono',monospace;margin-bottom:6px">✓ ALREADY HAVE</div>
+      <div style="font-size:0.7rem;color:var(--muted)">H_f, LAI, rho_f (1yr ago)<br>r_stoma_min C3 = 167.2 s/m<br>Davis weather TXT (3Mar-24Apr)<br>NI sensor data 7 days</div>
+    </div>
+    <div style="background:#0f0f1a;border-radius:8px;padding:12px;border:1px solid #1e1e3a">
+      <div style="color:#818cf8;font-size:0.7rem;font-family:'JetBrains Mono',monospace;margin-bottom:6px">🔄 CODE UPDATES NEEDED</div>
+      <div style="font-size:0.7rem;color:var(--muted)">T_in → dynamic from T1Ka/T3Kd<br>NI loader → XML parser<br>Filter T2A anomalies (66 rows)<br>CAM factor from Licor data</div>
+    </div>
+  </div>
+</div>
+
+<div style="height:20px"></div>
+
+</body>
+</html>

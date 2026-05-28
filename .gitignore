@@ -1,0 +1,19 @@
+.venv/
+__pycache__/
+*.pyc
+*.zip
+*.rar
+*.7z
+*.zst
+papers/
+paper/
+literature/
+references/
+jurnal/
+ij154-win-java8/
+ScienceDirect_articles_17Dec2025_17-13-04.273/
+replicate/
+outputs/
+logs/
+Green roof 2025/
+datadatalicor/

@@ -1,0 +1,6 @@
+{
+  "r_s_night_s_m": 90.0,
+  "r_s_midday_s_m": 500.0,
+  "r_s_late_afternoon_s_m": 197.0,
+  "source_summary": "defaults; replace with LI-COR-derived values when available"
+}

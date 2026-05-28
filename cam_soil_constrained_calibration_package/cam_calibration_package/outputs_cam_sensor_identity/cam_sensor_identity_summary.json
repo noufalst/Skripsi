@@ -1,0 +1,139 @@
+{
+  "window": {
+    "start": "2026-03-31 11:58:00",
+    "end": "2026-04-02 21:42:00",
+    "rows": 3465
+  },
+  "candidates": [
+    "T1Ka",
+    "T1Ke",
+    "T1Ta",
+    "T1Tb",
+    "T2A",
+    "T2A2"
+  ],
+  "top_role_candidates": {
+    "exposed_surface": [
+      {
+        "channel": "T1Ta",
+        "score_exposed_surface": 17.840679292722992,
+        "amp_95_05_C": 16.576853000000003,
+        "corr_with_solar_best": 0.8527140022158018,
+        "lag_from_solar_min": -80
+      },
+      {
+        "channel": "T1Tb",
+        "score_exposed_surface": 11.016810682589433,
+        "amp_95_05_C": 10.078090799999995,
+        "corr_with_solar_best": 0.8106981899345859,
+        "lag_from_solar_min": -185
+      },
+      {
+        "channel": "T1Ke",
+        "score_exposed_surface": 8.240080713350814,
+        "amp_95_05_C": 7.2298686,
+        "corr_with_solar_best": 0.8105464732829127,
+        "lag_from_solar_min": -145
+      }
+    ],
+    "upper_substrate": [
+      {
+        "channel": "T1Ke",
+        "score_upper_substrate": 1.9879705392589644,
+        "amp_95_05_C": 7.2298686,
+        "corr_with_solar_best": 0.8105464732829127,
+        "lag_from_solar_min": -145
+      },
+      {
+        "channel": "T2A2",
+        "score_upper_substrate": 1.793310827719047,
+        "amp_95_05_C": 5.355825600000003,
+        "corr_with_solar_best": 0.8257780962796263,
+        "lag_from_solar_min": -115
+      },
+      {
+        "channel": "T1Tb",
+        "score_upper_substrate": 1.727006157517272,
+        "amp_95_05_C": 10.078090799999995,
+        "corr_with_solar_best": 0.8106981899345859,
+        "lag_from_solar_min": -185
+      }
+    ],
+    "lower_substrate": [
+      {
+        "channel": "T2A",
+        "score_lower_substrate": 1.6884569890135617,
+        "amp_95_05_C": 2.2398145999999954,
+        "corr_with_solar_best": -0.711978305227769,
+        "lag_from_solar_min": 180
+      },
+      {
+        "channel": "T2A2",
+        "score_lower_substrate": 0.7021102906838559,
+        "amp_95_05_C": 5.355825600000003,
+        "corr_with_solar_best": 0.8257780962796263,
+        "lag_from_solar_min": -115
+      },
+      {
+        "channel": "T1Ka",
+        "score_lower_substrate": 0.6756450079305407,
+        "amp_95_05_C": 4.093790599999998,
+        "corr_with_solar_best": 0.7246383141280451,
+        "lag_from_solar_min": -245
+      }
+    ],
+    "indoor_air": [
+      {
+        "channel": "T1Ka",
+        "score_indoor_air": 1.9814167186116678,
+        "amp_95_05_C": 4.093790599999998,
+        "corr_with_solar_best": 0.7246383141280451,
+        "lag_from_solar_min": -245
+      },
+      {
+        "channel": "T2A2",
+        "score_indoor_air": 1.5013701887134054,
+        "amp_95_05_C": 5.355825600000003,
+        "corr_with_solar_best": 0.8257780962796263,
+        "lag_from_solar_min": -115
+      },
+      {
+        "channel": "T2A",
+        "score_indoor_air": 1.4825051208644426,
+        "amp_95_05_C": 2.2398145999999954,
+        "corr_with_solar_best": -0.711978305227769,
+        "lag_from_solar_min": 180
+      }
+    ],
+    "inner_roof_surface": [
+      {
+        "channel": "T1Tb",
+        "score_inner_roof_surface": 1.6231699680831442,
+        "amp_95_05_C": 10.078090799999995,
+        "corr_with_solar_best": 0.8106981899345859,
+        "lag_from_solar_min": -185
+      },
+      {
+        "channel": "T1Ke",
+        "score_inner_roof_surface": 1.4513309103941636,
+        "amp_95_05_C": 7.2298686,
+        "corr_with_solar_best": 0.8105464732829127,
+        "lag_from_solar_min": -145
+      },
+      {
+        "channel": "T2A2",
+        "score_inner_roof_surface": 1.3691944399403737,
+        "amp_95_05_C": 5.355825600000003,
+        "corr_with_solar_best": 0.8257780962796263,
+        "lag_from_solar_min": -115
+      }
+    ]
+  },
+  "interpretation_notes": [
+    "This is a heuristic ranking, not proof.",
+    "A plug-off test remains the best direct verification.",
+    "High amplitude + high solar correlation suggests exposed/near-surface sensor.",
+    "Low amplitude + lagged response suggests deeper substrate or indoor air.",
+    "If measured inner roof sensor follows exposed surface strongly, target mapping may be wrong for full 1D green-roof T_s_in."
+  ]
+}

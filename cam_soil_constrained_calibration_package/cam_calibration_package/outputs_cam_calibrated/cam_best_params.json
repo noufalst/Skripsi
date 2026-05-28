@@ -1,0 +1,15 @@
+{
+  "cam_amplitude_scale": 1.2,
+  "cam_day_max_W_m2": 6.266960767629903,
+  "cam_night_max_W_m2": 22.324289030574306,
+  "lai": 1.3164775509108297,
+  "cover_fraction": 0.98,
+  "solar_absorptivity": 0.6106508015903135,
+  "h_out_W_m2K": 21.227979512858976,
+  "h_in_W_m2K": 10.0,
+  "soil_k_W_mK": 0.95,
+  "soil_rho_kg_m3": 356.8027397811161,
+  "soil_cp_J_kgK": 930.4699288517462,
+  "concrete_k_W_mK": 2.2,
+  "initial_temp_C": 39.398990916716926
+}

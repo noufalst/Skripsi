@@ -1,0 +1,9 @@
+{
+  "r_stoma_min_CAM_s_m": 90.0,
+  "profile_r_s_night_s_m": 892.8571428571428,
+  "profile_r_s_midday_s_m": 892.8571428571428,
+  "profile_r_s_late_afternoon_s_m": 892.8571428571428,
+  "hourly_gsw_median": {},
+  "hourly_gsw_n": {},
+  "source_summary": "defaults; replace with LI-COR-derived profile when available"
+}

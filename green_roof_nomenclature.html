@@ -1,0 +1,209 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+.wrap{padding:1rem 0}
+.search-bar{display:flex;gap:8px;margin-bottom:1rem;align-items:center}
+.search-bar input{flex:1;padding:8px 12px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-size:14px}
+.filters{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1rem}
+.chip{padding:4px 12px;border-radius:999px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-secondary);font-size:12px;cursor:pointer;transition:all 0.15s}
+.chip.active{background:var(--color-background-info);color:var(--color-text-info);border-color:var(--color-border-info)}
+.count{font-size:12px;color:var(--color-text-secondary);margin-bottom:0.75rem}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{text-align:left;padding:8px 10px;font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.05em;border-bottom:0.5px solid var(--color-border-tertiary);background:var(--color-background-secondary)}
+tbody tr{border-bottom:0.5px solid var(--color-border-tertiary)}
+tbody tr:hover{background:var(--color-background-secondary)}
+td{padding:8px 10px;vertical-align:top}
+.sym{font-family:var(--font-mono);font-size:12px;color:var(--color-text-primary);font-weight:500;white-space:nowrap}
+.unit{font-family:var(--font-mono);font-size:11px;color:var(--color-text-secondary)}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:500;white-space:nowrap}
+.b-plant{background:#EAF3DE;color:#3B6D11}
+.b-sub{background:#FAEEDA;color:#854F0B}
+.b-slab{background:#E6F1FB;color:#185FA5}
+.b-weather{background:#EEEDFE;color:#534AB7}
+.b-thermo{background:#FBEAF0;color:#993556}
+.b-licor{background:#E1F5EE;color:#0F6E56}
+.b-num{background:#F1EFE8;color:#5F5E5A}
+.desc{color:var(--color-text-secondary);line-height:1.5}
+.eq{font-size:11px;color:var(--color-text-tertiary);font-family:var(--font-mono);margin-top:2px}
+.status-real{display:inline-block;width:7px;height:7px;border-radius:50%;background:#63991A;margin-right:4px}
+.status-dummy{display:inline-block;width:7px;height:7px;border-radius:50%;background:#EF9F27;margin-right:4px}
+.status-lit{display:inline-block;width:7px;height:7px;border-radius:50%;background:#378ADD;margin-right:4px}
+.legend{display:flex;gap:16px;font-size:11px;color:var(--color-text-secondary);margin-bottom:0.75rem;flex-wrap:wrap}
+.legend span{display:flex;align-items:center;gap:4px}
+.empty{text-align:center;padding:2rem;color:var(--color-text-tertiary);font-size:13px}
+@media(prefers-color-scheme:dark){
+.b-plant{background:#27500A;color:#C0DD97}
+.b-sub{background:#633806;color:#FAC775}
+.b-slab{background:#0C447C;color:#B5D4F4}
+.b-weather{background:#3C3489;color:#CECBF6}
+.b-thermo{background:#72243E;color:#F4C0D1}
+.b-licor{background:#085041;color:#9FE1CB}
+.b-num{background:#444441;color:#D3D1C7}
+}
+</style>
+<div class="wrap">
+<h2 class="sr-only">Green roof simulation nomenclature reference table</h2>
+<div class="search-bar">
+<input type="text" id="q" placeholder="Search symbol, name, or description..." oninput="filter()">
+</div>
+<div class="filters" id="filters"></div>
+<div class="legend">
+<span><span class="status-real"></span>REAL — measured data</span>
+<span><span class="status-dummy"></span>DUMMY — needs measurement</span>
+<span><span class="status-lit"></span>LIT — from literature</span>
+</div>
+<div class="count" id="count"></div>
+<table>
+<thead>
+<tr><th style="width:12%">Symbol</th><th style="width:10%">Unit</th><th style="width:20%">Name</th><th>Description</th><th style="width:10%">Block</th><th style="width:8%">Status</th></tr>
+</thead>
+<tbody id="tbody"></tbody>
+</table>
+<div class="empty" id="empty" style="display:none">No variables match your search.</div>
+</div>
+<script>
+const DATA=[
+{sym:"T_f",unit:"K / °C",name:"Foliage temperature",desc:"Leaf canopy bulk temperature. Solved implicitly each time step. Key output of Block 1.",eq:"Eq.(1)",block:"plant",status:"calc"},
+{sym:"T_g",unit:"K / °C",name:"Substrate temperature",desc:"Vertical profile across Nz=107 nodes from surface to slab interface. Output of Block 2a.",eq:"Eq.(4)",block:"sub",status:"calc"},
+{sym:"T_s",unit:"K / °C",name:"Slab temperature",desc:"Vertical profile across Nz=67 nodes through concrete slab. Output of Block 3.",eq:"Eq.(12)",block:"slab",status:"calc"},
+{sym:"T_a",unit:"K / °C",name:"Air temperature",desc:"Ambient air temperature. Driving input from Davis Vantage Pro 2 weather station.",eq:"—",block:"weather",status:"real"},
+{sym:"T_sky",unit:"K",name:"Sky temperature",desc:"Effective sky temperature for longwave radiation. Derived from T_a and RH using Swinbank correlation.",eq:"helper",block:"thermo",status:"calc"},
+{sym:"T_in",unit:"K / °C",name:"Interior temperature",desc:"Room temperature assumed constant at 25°C. Bottom boundary condition for slab.",eq:"Eq.(14)",block:"slab",status:"dummy"},
+{sym:"G_sol",unit:"W/m²",name:"Solar radiation",desc:"Incident shortwave solar radiation at roof surface. From Davis weather station.",eq:"—",block:"weather",status:"real"},
+{sym:"RH",unit:"%",name:"Relative humidity",desc:"Ambient relative humidity. Drives VPD and sky temperature calculations.",eq:"—",block:"weather",status:"real"},
+{sym:"u",unit:"m/s",name:"Wind speed",desc:"Wind speed at reference height (2m above canopy). Drives aerodynamic resistance.",eq:"Eq.(A.2)",block:"weather",status:"real"},
+{sym:"rain",unit:"mm/interval",name:"Rainfall",desc:"Precipitation input. Converted to moisture flux j_pr at substrate surface.",eq:"Eq.(9)",block:"weather",status:"real"},
+{sym:"H_f",unit:"m",name:"Canopy height",desc:"Height from substrate surface to top of canopy. Different per plant species.",eq:"Eq.(A.3,A.4)",block:"plant",status:"real"},
+{sym:"d_f",unit:"m",name:"Leaf size",desc:"Mean leaf width. Used in drag coefficient calculation for sub-canopy wind speed.",eq:"Eq.(B.6)",block:"plant",status:"dummy"},
+{sym:"LAI",unit:"m²/m²",name:"Leaf Area Index",desc:"Total leaf area per ground area. Sensitive parameter — calibrated from NI sensor data.",eq:"many",block:"plant",status:"real"},
+{sym:"alpha_f",unit:"—",name:"Leaf absorptivity",desc:"Fraction of solar radiation absorbed by leaves. Computed: 1 - rho_f - tau_f.",eq:"Eq.(2)",block:"plant",status:"real"},
+{sym:"epsilon_f",unit:"—",name:"Leaf emissivity",desc:"Longwave emissivity of leaf surface. Standard value for green leaves.",eq:"Eq.(2),(3)",block:"plant",status:"lit"},
+{sym:"tau_f",unit:"—",name:"Leaf transmissivity",desc:"Fraction of solar radiation transmitted through canopy to substrate surface.",eq:"Eq.(6)",block:"plant",status:"lit"},
+{sym:"r_stoma_min",unit:"s/m",name:"Min stomatal resistance",desc:"Stomatal resistance at optimal conditions (full light, ideal T, high soil moisture, low VPD). KEY parameter from LI-COR gsw data.",eq:"Eq.(A.6)",block:"plant",status:"dummy"},
+{sym:"r_a",unit:"s/m",name:"Aerodynamic resistance",desc:"Resistance to heat/vapor transfer from canopy to free air. Function of wind speed and canopy geometry.",eq:"Eq.(A.2)",block:"plant",status:"calc"},
+{sym:"r_stoma",unit:"s/m",name:"Stomatal resistance",desc:"Actual stomatal resistance modified by f1–f4 stress functions and CAM/C3 day-night factor.",eq:"Eq.(A.6)",block:"plant",status:"calc"},
+{sym:"f1",unit:"—",name:"Light stress function",desc:"Jarvis light response. f1→1 in bright light (stomata open), f1→2 in dark. Coefficient 0.034 from Djedjig literature — can be fitted from LI-COR Qin vs gsw.",eq:"Eq.(A.7)",block:"plant",status:"lit"},
+{sym:"f2",unit:"—",name:"Temperature stress function",desc:"Jarvis temperature response. Stomata most open near 25°C, close at extremes.",eq:"Eq.(A.8)",block:"plant",status:"lit"},
+{sym:"f3",unit:"—",name:"VPD stress function",desc:"Jarvis VPD response. Low VPD (humid Jakarta) → small f3 → stomata more open. Coefficient 0.73 can be fitted from LI-COR VPDleaf vs gsw.",eq:"Eq.(A.9)",block:"plant",status:"lit"},
+{sym:"f4",unit:"—",name:"Soil moisture stress function",desc:"Jarvis soil moisture response. f4 = theta_sat / theta. Dry substrate → stomata close.",eq:"Eq.(A.10)",block:"plant",status:"calc"},
+{sym:"lambda_dry",unit:"W/mK",name:"Substrate thermal conductivity (dry)",desc:"Thermal conductivity of dry substrate. For wet substrate: lambda_g = lambda_dry + theta × k_theta.",eq:"Eq.(B.9)",block:"sub",status:"lit"},
+{sym:"rho_g",unit:"kg/m³",name:"Substrate bulk density",desc:"Bulk density of rice husk + soil mixture. Needed for volumetric heat capacity.",eq:"Eq.(B.8)",block:"sub",status:"dummy"},
+{sym:"cp_g",unit:"J/kgK",name:"Substrate specific heat",desc:"Specific heat capacity of substrate material.",eq:"Eq.(B.8)",block:"sub",status:"lit"},
+{sym:"theta",unit:"m³/m³",name:"Volumetric Water Content",desc:"VWC profile across substrate depth. Solved by Richards equation. Drives lambda_g, k_theta, D_theta.",eq:"Eq.(8)",block:"sub",status:"calc"},
+{sym:"theta_sat",unit:"m³/m³",name:"Saturated VWC",desc:"VWC when all pores are filled with water. From water content test (lab).",eq:"Eq.(B.10,B.11)",block:"sub",status:"dummy"},
+{sym:"theta_min",unit:"m³/m³",name:"Wilting point VWC",desc:"Minimum VWC — permanent wilting point of plants. Below this, plants cannot extract water.",eq:"Eq.(A.10)",block:"sub",status:"lit"},
+{sym:"k_theta_sat",unit:"m/s",name:"Saturated hydraulic conductivity",desc:"Rate of water movement through substrate at saturation. From permeability test (lab).",eq:"Eq.(B.10)",block:"sub",status:"dummy"},
+{sym:"psi_sat",unit:"m",name:"Saturated moisture potential",desc:"Matric potential at full saturation. Controls capillary water movement.",eq:"Eq.(B.11)",block:"sub",status:"lit"},
+{sym:"b",unit:"—",name:"Brooks-Corey parameter",desc:"Soil texture parameter from grain size analysis. Describes k_theta vs VWC relationship.",eq:"Eq.(B.10,B.11)",block:"sub",status:"lit"},
+{sym:"D_theta",unit:"m²/s",name:"Hydraulic diffusivity",desc:"Describes moisture diffusion driven by VWC gradient. Function of theta.",eq:"Eq.(B.11)",block:"sub",status:"calc"},
+{sym:"k_theta",unit:"m/s",name:"Hydraulic conductivity",desc:"Actual water movement rate at current VWC. Drops drastically as substrate dries.",eq:"Eq.(B.10)",block:"sub",status:"calc"},
+{sym:"lambda_g",unit:"W/mK",name:"Substrate thermal conductivity (wet)",desc:"Actual thermal conductivity at current VWC. lambda_g = lambda_dry + theta × k_theta.",eq:"Eq.(B.9)",block:"sub",status:"calc"},
+{sym:"rho_cp_g",unit:"J/m³K",name:"Substrate volumetric heat capacity",desc:"Heat capacity per unit volume. Increases with moisture content.",eq:"Eq.(B.8)",block:"sub",status:"calc"},
+{sym:"H_g",unit:"m",name:"Substrate depth",desc:"Thickness of substrate layer (soil only, not drainage). Must be measured directly.",eq:"grid",block:"sub",status:"dummy"},
+{sym:"lambda_s",unit:"W/mK",name:"Slab thermal conductivity",desc:"Thermal conductivity of concrete. Standard engineering value.",eq:"Eq.(12)",block:"slab",status:"lit"},
+{sym:"rho_s",unit:"kg/m³",name:"Slab density",desc:"Bulk density of concrete slab. Standard engineering value.",eq:"Eq.(12)",block:"slab",status:"lit"},
+{sym:"cp_s",unit:"J/kgK",name:"Slab specific heat",desc:"Specific heat of concrete. Standard engineering value.",eq:"Eq.(12)",block:"slab",status:"lit"},
+{sym:"H_slab",unit:"m",name:"Slab thickness",desc:"Concrete slab thickness. Must be confirmed by direct measurement.",eq:"grid",block:"slab",status:"dummy"},
+{sym:"h_in",unit:"W/m²K",name:"Interior convection coefficient",desc:"Convection at slab underside to room air. Standard value for horizontal surface facing down.",eq:"Eq.(14)",block:"slab",status:"lit"},
+{sym:"q_s_in",unit:"W/m²",name:"Heat flux to interior",desc:"PRIMARY OUTPUT. Heat flowing from slab into the room. Positive = heat gain, negative = heat sink.",eq:"Eq.(14)",block:"slab",status:"calc"},
+{sym:"Q_gain",unit:"J/m²",name:"Cumulative heat gain",desc:"Time-integrated q_s_in over simulation period. Main performance metric of green roof.",eq:"Eq.(18)",block:"slab",status:"calc"},
+{sym:"P_sat",unit:"Pa",name:"Saturation vapor pressure",desc:"Equilibrium vapor pressure at a given temperature. Computed via Magnus/Antoine equation.",eq:"helper",block:"thermo",status:"calc"},
+{sym:"P_a",unit:"Pa",name:"Ambient vapor pressure",desc:"Actual vapor pressure of ambient air. P_a = (RH/100) × P_sat(T_a).",eq:"helper",block:"thermo",status:"calc"},
+{sym:"VPD",unit:"Pa",name:"Vapor Pressure Deficit",desc:"Driving force for evaporation. VPD = P_sat(T_f) - P_a. High VPD = dry air = more evaporation force.",eq:"Eq.(A.9)",block:"thermo",status:"calc"},
+{sym:"gamma",unit:"Pa/K",name:"Psychrometric constant",desc:"Relates vapor pressure to temperature in evaporation equations. ≈ 66.8 Pa/K at sea level.",eq:"Eq.(A.5,B.2)",block:"thermo",status:"calc"},
+{sym:"l_fg",unit:"J/kg",name:"Latent heat of vaporization",desc:"Energy needed to evaporate 1 kg of water. 2.45 MJ/kg at ~20°C.",eq:"many",block:"thermo",status:"lit"},
+{sym:"epsilon_fg",unit:"—",name:"Effective foliage-substrate emissivity",desc:"Combined longwave emissivity for radiation exchange between canopy and substrate surface.",eq:"Eq.(3)",block:"thermo",status:"calc"},
+{sym:"j_eva",unit:"kg/m²s",name:"Evapotranspiration flux",desc:"Total water vapor leaving system (transpiration from leaves + evaporation from substrate).",eq:"Eq.(10)",block:"thermo",status:"calc"},
+{sym:"j_irrigation",unit:"kg/m²s",name:"Irrigation flux",desc:"Water input at substrate top boundary. Includes both artificial irrigation and rainfall.",eq:"Eq.(9)",block:"sub",status:"real"},
+{sym:"h_conv_f",unit:"W/m²K",name:"Foliage convection coefficient",desc:"Heat transfer coefficient between canopy and air. h_conv_f = LAI × rho_cp_air / r_a.",eq:"Eq.(A.1)",block:"plant",status:"calc"},
+{sym:"h_eva_f",unit:"kg/m²s·Pa",name:"Foliage evaporation coefficient",desc:"Evaporation coefficient for leaf transpiration. Function of r_a and r_stoma.",eq:"Eq.(A.5)",block:"plant",status:"calc"},
+{sym:"R_f_net",unit:"W/m²",name:"Foliage net radiation",desc:"Net radiation absorbed by canopy: solar absorption minus longwave emission to sky and substrate.",eq:"Eq.(2)",block:"plant",status:"calc"},
+{sym:"A",unit:"µmol/m²/s",name:"Net photosynthesis",desc:"[LI-COR] CO₂ assimilation rate. Not directly in simulation — used to derive r_stoma via Ball-Berry if needed.",eq:"LI-COR",block:"licor",status:"real"},
+{sym:"gsw",unit:"mol/m²/s",name:"Stomatal conductance",desc:"[LI-COR] Directly measured stomatal conductance. Convert to r_stoma: r_stoma = 1/(gsw × 0.0224). KEY input for calibrating r_stoma_min.",eq:"LI-COR",block:"licor",status:"real"},
+{sym:"VPDleaf",unit:"kPa",name:"Leaf-to-air VPD",desc:"[LI-COR] Measured VPD at leaf surface. Use to fit Jarvis f3 coefficient (currently 0.73 from literature).",eq:"LI-COR→f3",block:"licor",status:"real"},
+{sym:"Qin",unit:"µmol/m²/s",name:"Incident PAR",desc:"[LI-COR] Photosynthetically active radiation at leaf. Use to fit Jarvis f1 coefficient (currently 0.034 from literature).",eq:"LI-COR→f1",block:"licor",status:"real"},
+{sym:"Tleaf",unit:"°C",name:"Leaf temperature",desc:"[LI-COR] Directly measured leaf temperature. Can validate T_f output from Block 1.",eq:"LI-COR→T_f",block:"licor",status:"real"},
+{sym:"Ci",unit:"µmol/mol",name:"Intercellular CO₂",desc:"[LI-COR] Internal leaf CO₂ concentration. Indicator of stomatal behavior — low Ci = stomata more closed.",eq:"LI-COR",block:"licor",status:"real"},
+{sym:"E",unit:"mol/m²/s",name:"Transpiration rate",desc:"[LI-COR] Measured water vapor flux from leaf. Related to j_eva in simulation.",eq:"LI-COR→j_eva",block:"licor",status:"real"},
+{sym:"dt",unit:"s",name:"Time step",desc:"Simulation time step. Paper uses dt=1s for numerical stability.",eq:"numerical",block:"num",status:"lit"},
+{sym:"Nz_substrate",unit:"—",name:"Substrate node count",desc:"Number of finite volume nodes in substrate. Paper uses 107 nodes.",eq:"numerical",block:"num",status:"lit"},
+{sym:"Nz_slab",unit:"—",name:"Slab node count",desc:"Number of finite volume nodes in slab. Paper uses 67 nodes.",eq:"numerical",block:"num",status:"lit"},
+{sym:"convergence",unit:"—",name:"Convergence criterion",desc:"Gauss-Seidel convergence tolerance. Paper uses 10⁻⁵.",eq:"numerical",block:"num",status:"lit"},
+];
+
+const BLOCKS={
+plant:{label:"Plant",cls:"b-plant"},
+sub:{label:"Substrate",cls:"b-sub"},
+slab:{label:"Slab",cls:"b-slab"},
+weather:{label:"Weather",cls:"b-weather"},
+thermo:{label:"Thermo/ET",cls:"b-thermo"},
+licor:{label:"LI-COR",cls:"b-licor"},
+num:{label:"Numerical",cls:"b-num"},
+};
+
+const STATUS={
+real:{dot:"status-real",label:"REAL"},
+dummy:{dot:"status-dummy",label:"DUMMY"},
+lit:{dot:"status-lit",label:"LIT"},
+calc:{dot:null,label:"calc"},
+};
+
+let activeBlock="all";
+
+function buildFilters(){
+const f=document.getElementById("filters");
+const chips=[{key:"all",label:"All"},...Object.entries(BLOCKS).map(([k,v])=>({key:k,label:v.label})),
+{key:"__real",label:"REAL only"},{key:"__dummy",label:"DUMMY only"}];
+chips.forEach(c=>{
+const el=document.createElement("button");
+el.className="chip"+(c.key==="all"?" active":"");
+el.textContent=c.label;
+el.dataset.key=c.key;
+el.onclick=()=>{
+document.querySelectorAll(".chip").forEach(x=>x.classList.remove("active"));
+el.classList.add("active");
+activeBlock=c.key;
+filter();
+};
+f.appendChild(el);
+});
+}
+
+function filter(){
+const q=document.getElementById("q").value.toLowerCase();
+const rows=DATA.filter(d=>{
+const matchQ=!q||d.sym.toLowerCase().includes(q)||d.name.toLowerCase().includes(q)||d.desc.toLowerCase().includes(q)||d.unit.toLowerCase().includes(q);
+let matchBlock=true;
+if(activeBlock==="__real") matchBlock=d.status==="real";
+else if(activeBlock==="__dummy") matchBlock=d.status==="dummy";
+else if(activeBlock!=="all") matchBlock=d.block===activeBlock;
+return matchQ&&matchBlock;
+});
+render(rows);
+}
+
+function render(rows){
+const tbody=document.getElementById("tbody");
+const empty=document.getElementById("empty");
+document.getElementById("count").textContent=rows.length+" variable"+(rows.length!==1?"s":"")+" shown";
+if(!rows.length){tbody.innerHTML="";empty.style.display="block";return;}
+empty.style.display="none";
+tbody.innerHTML=rows.map(d=>{
+const b=BLOCKS[d.block];
+const s=STATUS[d.status]||{dot:null,label:d.status};
+const dot=s.dot?`<span class="${s.dot}"></span>`:"";
+return`<tr>
+<td><span class="sym">${d.sym}</span>${d.eq&&d.eq!=="—"?`<div class="eq">${d.eq}</div>`:""}</td>
+<td><span class="unit">${d.unit}</span></td>
+<td style="font-size:13px;font-weight:500;color:var(--color-text-primary)">${d.name}</td>
+<td class="desc">${d.desc}</td>
+<td><span class="badge ${b.cls}">${b.label}</span></td>
+<td style="font-size:12px;white-space:nowrap">${dot}${s.label}</td>
+</tr>`;
+}).join("");
+}
+
+buildFilters();
+filter();
+</script>

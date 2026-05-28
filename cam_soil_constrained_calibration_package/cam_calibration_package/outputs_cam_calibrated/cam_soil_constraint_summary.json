@@ -1,0 +1,7 @@
+{
+  "soil_available": true,
+  "shallow_day_slope_pctpt_per_h": -0.41711558056917253,
+  "deep_day_slope_pctpt_per_h": 0.155812137043546,
+  "classification": "flat_or_weak_drydown",
+  "recommended_max_day_q_plant_W_m2": 4.5
+}
